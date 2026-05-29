@@ -227,6 +227,16 @@ Example output:
 | TRIM/BLKDISCARD after SSD wipe | ✅ | ❌ | ❌ | partial |
 
 ---
+## FINAL CONCLUSION
+NVMe Crypto Erase — no recovery possible. The controller destroys its internal media encryption key. Every cell on the physical NAND — including over-provisioned sectors, wear-leveling reserves, and bad-block remaps that are invisible to the host — stores only ciphertext with a key that no longer exists. There is nothing to recover, even with chip-off NAND forensics or an electron microscope. This is why NIST classifies it as Purge rather than Clear.
+ATA Secure Erase (Enhanced) — effectively no recovery. Same story for the sectors the controller actually erases. Enhanced mode covers remapped and spare sectors. Normal mode may leave some controller-internal areas untouched, but host-addressable data is gone. No published forensic technique has recovered data from a properly completed ATA Secure Erase.
+DoD 5220.22-M 7-pass and Gutmann 35-pass on an HDD — no practical recovery. The theoretical basis for multi-pass overwrite being necessary (residual magnetic signal on adjacent tracks) was compelling in the 1990s for older MFM/RLL drives with loose track tolerances. For any drive manufactured after roughly 2001, a single overwrite is sufficient — the track density is too high for residual signal recovery to work. Gutmann himself noted this in a 2001 postscript to his original paper. With 7 passes, recovery is not feasible by any currently known method, including professional forensic labs.
+NIST Clear (single zero-pass) on an HDD — theoretically a very small risk. A single overwrite on a modern HDD is considered sufficient by NIST for non-classified data. However, it is the one case where a well-resourced adversary might attempt magnetic force microscopy on the platters after disassembly. No lab has demonstrated successful data recovery from a zero-overwritten modern drive publicly, but NIST doesn't certify it as Purge for this reason.
+Single zero-pass on an SSD (without hardware erase) — partial recovery is possible. This is the case titan-wipe specifically avoids by detecting drive type and routing to hardware erase. If you ran a software zero-fill on an SSD (what shred does by default), the FTL has redirected your writes to new flash cells and the original cells are sitting in the over-provisioned pool, unmapped but not erased. With direct NAND chip access a forensic lab can read those cells.
+
+Bottom line for titan-wipe specifically: if the hardware erase path ran correctly and the certificate shows Success, the data is gone. The pre/post BLAKE3 hashes in the certificate are your audit evidence that the device state changed. The one thing to watch is whether the drive actually completed the command — some cheap drives acknowledge an ATA Secure Erase immediately without doing the work. That's a firmware bug on the drive side, not something any software tool can fully guard against, which is why post-wipe verification exists.
+---
+
 
 ## Platform Support
 
