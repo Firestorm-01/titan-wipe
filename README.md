@@ -1,5 +1,5 @@
 # titan-wipe
-
+⚠️Entire project needs to be tested before usage.This is a prototype.Please use this tool with caution.Data when wiped is irrecoverable.
 **Enterprise-grade, NIST SP 800-88 Rev.1 compliant storage sanitization utility written in Rust.**
 
 Designed to outperform legacy tools like DBAN and `shred` by using hardware-native erase commands where available, implementing correct wipe algorithms, and generating a cryptographically-verified audit certificate on every run.
